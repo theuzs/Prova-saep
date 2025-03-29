@@ -71,7 +71,25 @@ def add_tarefa():
         conn.commit()
         conn.close()
         return redirect(url_for('index'))
-    return render_template('add_tarefa.html')
+    # Buscar usuários para exibir no formulário
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute("SELECT id, nome FROM usuarios")
+    usuarios = c.fetchall()
+    conn.close()
+    return render_template('add_tarefa.html', usuarios=usuarios)
+
+# Rota para mudar o status da tarefa
+@app.route('/mudar_status/<int:tarefa_id>', methods=['POST'])
+def mudar_status(tarefa_id):
+    novo_status = request.form['status']
+    if novo_status in ['a fazer', 'fazendo', 'pronto']:
+        conn = sqlite3.connect('database.db')
+        c = conn.cursor()
+        c.execute("UPDATE tarefas SET status = ? WHERE id = ?", (novo_status, tarefa_id))
+        conn.commit()
+        conn.close()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     init_db()
