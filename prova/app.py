@@ -34,8 +34,16 @@ def init_db():
 def index():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT * FROM tarefas")
+    c.execute("""
+    SELECT tarefas.id, tarefas.id_usuario, tarefas.descricao, tarefas.setor, 
+           tarefas.prioridade, tarefas.data_cadastro, tarefas.status, usuarios.nome 
+    FROM tarefas
+    JOIN usuarios ON tarefas.id_usuario = usuarios.id
+    """)
     tarefas = c.fetchall()
+
+    # c.execute("SELECT * FROM tarefas")
+    # tarefas = c.fetchall()
     conn.close()
     return render_template('index.html', tarefas=tarefas)
 
@@ -90,6 +98,42 @@ def mudar_status(tarefa_id):
         conn.commit()
         conn.close()
     return redirect(url_for('index'))
+
+    # Rota para excluir tarefa
+@app.route('/excluir_tarefa/<int:tarefa_id>', methods=['POST'])
+def excluir_tarefa(tarefa_id):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM tarefas WHERE id = ?", (tarefa_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('index'))
+
+# Rota para editar tarefa
+@app.route('/editar_tarefa/<int:tarefa_id>', methods=['GET', 'POST'])
+def editar_tarefa(tarefa_id):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        descricao = request.form['descricao']
+        setor = request.form['setor']
+        prioridade = request.form['prioridade']
+        status = request.form['status']
+        c.execute("""
+            UPDATE tarefas
+            SET descricao = ?, setor = ?, prioridade = ?, status = ?
+            WHERE id = ?
+        """, (descricao, setor, prioridade, status, tarefa_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('index'))
+
+    c.execute("SELECT * FROM tarefas WHERE id = ?", (tarefa_id,))
+    tarefa = c.fetchone()
+    conn.close()
+    return render_template('editar_tarefa.html', tarefa=tarefa)
+
 
 if __name__ == '__main__':
     init_db()

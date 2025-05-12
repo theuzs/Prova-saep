@@ -5,14 +5,12 @@
     <title>Kanban - Gerenciamento de Tarefas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Estilo geral */
         body {
-            background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%);
+            background: linear-gradient(135deg, #1e1e2f 0%, #000000 100%);
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Container principal */
         .container {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
@@ -22,14 +20,12 @@
             margin-top: 2rem;
         }
 
-        /* Título */
         h1 {
             color: #00d4ff;
             text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
             font-weight: 700;
         }
 
-        /* Botões */
         .btn-primary {
             background: linear-gradient(45deg, #00b4db, #0083b0);
             border: none;
@@ -39,6 +35,7 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0, 180, 219, 0.4);
         }
+
         .btn-success {
             background: linear-gradient(45deg, #00c853, #00a843);
             border: none;
@@ -49,7 +46,11 @@
             box-shadow: 0 4px 15px rgba(0, 200, 83, 0.4);
         }
 
-        /* Cabeçalhos das colunas */
+        .btn-outline-light, .btn-outline-danger {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
         h3 {
             color: #ffffff;
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
@@ -58,7 +59,6 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* Estilo das colunas */
         .list-group-item {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -68,12 +68,12 @@
             transition: transform 0.2s, box-shadow 0.2s;
             color: #e0e0e0;
         }
+
         .list-group-item:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
 
-        /* Cores específicas por status */
         .list-group-item.a-fazer {
             border-left: 5px solid #ff6f61;
         }
@@ -86,23 +86,31 @@
             background: rgba(0, 230, 118, 0.15);
         }
 
-        /* Dropdown */
         .form-select {
             background: rgba(255, 255, 255, 0.1);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.2s;
         }
+
         .form-select:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
         .form-select:focus {
             box-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
             border-color: #00d4ff;
         }
+
         .form-select option {
             background: #2a2a40;
             color: #ffffff;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
         }
     </style>
 </head>
@@ -116,6 +124,7 @@
         </div>
 
         <div class="row">
+            <!-- Coluna A Fazer -->
             <div class="col-md-4">
                 <h3 class="text-center">📝 A Fazer</h3>
                 <ul class="list-group">
@@ -123,7 +132,9 @@
                         <li class="list-group-item a-fazer">
                             <strong>{{ tarefa[2] }}</strong><br>
                             Setor: {{ tarefa[3] }}<br>
-                            Prioridade: {{ tarefa[4] }}
+                            Prioridade: {{ tarefa[4] }}<br>
+                            Vinculado a: {{ tarefa[7] }}
+
                             <form action="{{ url_for('mudar_status', tarefa_id=tarefa[0]) }}" method="post" class="mt-2">
                                 <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                                     <option value="a fazer" {% if tarefa[6] == 'a fazer' %}selected{% endif %}>A fazer</option>
@@ -131,11 +142,18 @@
                                     <option value="pronto" {% if tarefa[6] == 'pronto' %}selected{% endif %}>Pronto</option>
                                 </select>
                             </form>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('editar_tarefa', tarefa_id=tarefa[0]) }}" class="btn btn-outline-light">Editar</a>
+                                <form action="{{ url_for('excluir_tarefa', tarefa_id=tarefa[0]) }}" method="post" onsubmit="return confirm('Deseja excluir esta tarefa?');">
+                                    <button type="submit" class="btn btn-outline-danger">Excluir</button>
+                                </form>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
             </div>
 
+            <!-- Coluna Fazendo -->
             <div class="col-md-4">
                 <h3 class="text-center">🚧 Fazendo</h3>
                 <ul class="list-group">
@@ -143,7 +161,8 @@
                         <li class="list-group-item fazendo">
                             <strong>{{ tarefa[2] }}</strong><br>
                             Setor: {{ tarefa[3] }}<br>
-                            Prioridade: {{ tarefa[4] }}
+                            Prioridade: {{ tarefa[4] }}<br>
+                            Vinculado a: {{ tarefa[7] }}
                             <form action="{{ url_for('mudar_status', tarefa_id=tarefa[0]) }}" method="post" class="mt-2">
                                 <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                                     <option value="a fazer" {% if tarefa[6] == 'a fazer' %}selected{% endif %}>A fazer</option>
@@ -151,11 +170,18 @@
                                     <option value="pronto" {% if tarefa[6] == 'pronto' %}selected{% endif %}>Pronto</option>
                                 </select>
                             </form>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('editar_tarefa', tarefa_id=tarefa[0]) }}" class="btn btn-outline-light">Editar</a>
+                                <form action="{{ url_for('excluir_tarefa', tarefa_id=tarefa[0]) }}" method="post" onsubmit="return confirm('Deseja excluir esta tarefa?');">
+                                    <button type="submit" class="btn btn-outline-danger">Excluir</button>
+                                </form>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
             </div>
 
+            <!-- Coluna Pronto -->
             <div class="col-md-4">
                 <h3 class="text-center">✅ Pronto</h3>
                 <ul class="list-group">
@@ -163,7 +189,8 @@
                         <li class="list-group-item pronto">
                             <strong>{{ tarefa[2] }}</strong><br>
                             Setor: {{ tarefa[3] }}<br>
-                            Prioridade: {{ tarefa[4] }}
+                            Prioridade: {{ tarefa[4] }}<br>
+                            Vinculado a: {{ tarefa[7] }}
                             <form action="{{ url_for('mudar_status', tarefa_id=tarefa[0]) }}" method="post" class="mt-2">
                                 <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                                     <option value="a fazer" {% if tarefa[6] == 'a fazer' %}selected{% endif %}>A fazer</option>
@@ -171,6 +198,12 @@
                                     <option value="pronto" {% if tarefa[6] == 'pronto' %}selected{% endif %}>Pronto</option>
                                 </select>
                             </form>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('editar_tarefa', tarefa_id=tarefa[0]) }}" class="btn btn-outline-light">Editar</a>
+                                <form action="{{ url_for('excluir_tarefa', tarefa_id=tarefa[0]) }}" method="post" onsubmit="return confirm('Deseja excluir esta tarefa?');">
+                                    <button type="submit" class="btn btn-outline-danger">Excluir</button>
+                                </form>
+                            </div>
                         </li>
                     {% endfor %}
                 </ul>
